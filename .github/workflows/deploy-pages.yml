@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - new-star-triathlete
+      - pages-workflow-setup
   workflow_dispatch:
 
 permissions:
