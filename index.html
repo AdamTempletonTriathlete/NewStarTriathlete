@@ -77,6 +77,7 @@
           <select id="travel-select"></select>
           <button id="travel-btn" class="btn btn-secondary">Travel</button>
         </div>
+        <div id="travel-map" class="travel-map" aria-label="World map of race cities"></div>
       </section>
 
       <section class="card">
@@ -107,6 +108,23 @@
     </main>
 
     <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+    <div id="minigame-modal" class="overlay hidden">
+      <div class="card minigame-card">
+        <div class="header-row">
+          <h3 id="minigame-title">Training Session</h3>
+          <span id="minigame-type" class="pill"></span>
+        </div>
+        <p id="minigame-instructions" class="muted"></p>
+        <div id="minigame-stage" class="minigame-stage"></div>
+        <p id="minigame-feedback" class="minigame-feedback"></p>
+        <div class="action-footer">
+          <button id="minigame-start-btn" class="btn btn-primary btn-wide">Start Mini-Game</button>
+          <button id="minigame-cancel-btn" class="btn btn-ghost btn-wide">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <script src="app.js"></script>
   </body>
 </html>
