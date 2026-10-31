@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>New Star Triathlete</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="start-screen" class="overlay">
+      <div class="card start-card">
+        <h1>New Star Triathlete</h1>
+        <p class="muted">
+          Train hard, travel the globe, and race your way toward world number one.
+        </p>
+        <div id="continue-panel" class="hidden continue-panel">
+          <p id="continue-text" class="continue-text"></p>
+          <button id="continue-btn" class="btn btn-primary btn-wide">Continue Journey</button>
+          <p class="divider">or start a new athlete</p>
+        </div>
+        <label for="name-input">Athlete name</label>
+        <input id="name-input" type="text" maxlength="24" autocomplete="off" placeholder="Enter your name" />
+        <button id="start-btn" class="btn btn-primary btn-wide">Start Journey</button>
+        <p id="start-hint" class="hint"></p>
+      </div>
+    </div>
+
+    <main id="app" class="app hidden">
+      <header class="card">
+        <div class="header-row">
+          <h2 id="athlete-name"></h2>
+          <span id="week-label" class="pill"></span>
+        </div>
+        <div class="score-grid">
+          <div>
+            <div class="small-label">Stars</div>
+            <div id="stars-value" class="score-value"></div>
+          </div>
+          <div>
+            <div class="small-label">World Rank</div>
+            <div id="rank-value" class="score-value"></div>
+          </div>
+          <div>
+            <div class="small-label">Rank Tier</div>
+            <div id="rank-tier" class="score-value score-small"></div>
+          </div>
+          <div>
+            <div class="small-label">Location</div>
+            <div id="location-value" class="score-value score-small"></div>
+          </div>
+          <div>
+            <div class="small-label">Actions Left</div>
+            <div id="actions-value" class="score-value"></div>
+          </div>
+          <div>
+            <div class="small-label">Ranking Points</div>
+            <div id="ranking-points-value" class="score-value"></div>
+          </div>
+        </div>
+      </header>
+
+      <section class="card">
+        <h3>Condition</h3>
+        <div id="condition-bars" class="bar-list"></div>
+      </section>
+
+      <section class="card">
+        <h3>Training</h3>
+        <p class="muted">Each training session consumes one action this week.</p>
+        <div id="training-actions" class="action-grid"></div>
+      </section>
+
+      <section class="card">
+        <h3>Travel</h3>
+        <p class="muted">Travel to race venues and unlock better events.</p>
+        <div class="travel-controls">
+          <select id="travel-select"></select>
+          <button id="travel-btn" class="btn btn-secondary">Travel</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Upcoming Races</h3>
+        <div id="races-list" class="stack"></div>
+      </section>
+
+      <section class="card">
+        <h3>Gear Upgrades</h3>
+        <p class="muted">Spend stars to improve your split times.</p>
+        <div id="upgrades-list" class="stack"></div>
+      </section>
+
+      <section class="card">
+        <h3>Career</h3>
+        <div id="career-summary" class="career-grid"></div>
+      </section>
+
+      <section class="card">
+        <h3>Journey Log</h3>
+        <ul id="log-list" class="log-list"></ul>
+      </section>
+
+      <section class="card action-footer">
+        <button id="end-week-btn" class="btn btn-primary btn-wide">End Week</button>
+        <button id="new-athlete-btn" class="btn btn-ghost btn-wide">Start New Athlete</button>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
