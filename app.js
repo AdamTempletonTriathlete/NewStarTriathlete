@@ -54,7 +54,8 @@
     {
       id: "swim-session",
       label: "Swim Intervals",
-      summary: "+Swim +Stamina | Energy -12",
+      summary: "Mini-game: Rhythm | +Swim +Stamina",
+      miniGame: "rhythm",
       stats: { swim: [2, 4], stamina: [1, 2] },
       energy: -12,
       fatigue: 8,
@@ -64,7 +65,8 @@
     {
       id: "bike-session",
       label: "Bike Endurance",
-      summary: "+Bike +Stamina | Energy -13",
+      summary: "Mini-game: Sprint Tap | +Bike +Stamina",
+      miniGame: "sprint",
       stats: { bike: [2, 4], stamina: [1, 2] },
       energy: -13,
       fatigue: 9,
@@ -74,7 +76,8 @@
     {
       id: "run-session",
       label: "Tempo Run",
-      summary: "+Run +Focus | Energy -11",
+      summary: "Mini-game: Pattern Recall | +Run +Focus",
+      miniGame: "memory",
       stats: { run: [2, 4], focus: [1, 2] },
       energy: -11,
       fatigue: 8,
@@ -84,7 +87,8 @@
     {
       id: "brick-session",
       label: "Brick Workout",
-      summary: "+Bike +Run +Focus | Energy -18",
+      summary: "Mini-game: Rhythm | +Bike +Run +Focus",
+      miniGame: "rhythm",
       stats: { bike: [1, 3], run: [1, 3], focus: [1, 2] },
       energy: -18,
       fatigue: 13,
@@ -94,7 +98,8 @@
     {
       id: "strength-session",
       label: "Strength & Core",
-      summary: "+Stamina +Focus | Energy -10",
+      summary: "Mini-game: Pattern Recall | +Stamina +Focus",
+      miniGame: "memory",
       stats: { stamina: [2, 4], focus: [1, 2] },
       energy: -10,
       fatigue: 6,
@@ -104,7 +109,8 @@
     {
       id: "recovery-session",
       label: "Recovery Day",
-      summary: "Energy +24 | Fatigue -20",
+      summary: "Mini-game: Sprint Tap | Recovery boost",
+      miniGame: "sprint",
       stats: { focus: [0, 1] },
       energy: 24,
       fatigue: -20,
@@ -112,6 +118,24 @@
       log: "Recovery day reset your body for the next push.",
     },
   ];
+
+  const MINI_GAME_MODES = {
+    rhythm: {
+      label: "Rhythm Gauge",
+      instructions:
+        "Press Hit Zone when the white marker is inside green. Keep your timing sharp for stronger gains.",
+    },
+    memory: {
+      label: "Pattern Recall",
+      instructions:
+        "Watch the symbol sequence, then tap the same pattern. More correct inputs means better training output.",
+    },
+    sprint: {
+      label: "Sprint Tap",
+      instructions:
+        "Hit as many moving targets as you can before time expires. Faster taps improve rewards.",
+    },
+  };
 
   const MILESTONES = [
     { id: "breakthrough", points: 250, stars: 70, label: "Breakthrough Athlete" },
@@ -385,6 +409,7 @@
   let state = null;
   let savedStateCandidate = null;
   let toastTimerId = null;
+  let miniGameState = null;
 
   document.addEventListener("DOMContentLoaded", init);
 
@@ -424,6 +449,7 @@
     elements.trainingActions = document.getElementById("training-actions");
     elements.travelSelect = document.getElementById("travel-select");
     elements.travelBtn = document.getElementById("travel-btn");
+    elements.travelMap = document.getElementById("travel-map");
     elements.racesList = document.getElementById("races-list");
     elements.upgradesList = document.getElementById("upgrades-list");
     elements.careerSummary = document.getElementById("career-summary");
@@ -431,6 +457,14 @@
     elements.endWeekBtn = document.getElementById("end-week-btn");
     elements.newAthleteBtn = document.getElementById("new-athlete-btn");
     elements.toast = document.getElementById("toast");
+    elements.miniGameModal = document.getElementById("minigame-modal");
+    elements.miniGameTitle = document.getElementById("minigame-title");
+    elements.miniGameType = document.getElementById("minigame-type");
+    elements.miniGameInstructions = document.getElementById("minigame-instructions");
+    elements.miniGameStage = document.getElementById("minigame-stage");
+    elements.miniGameFeedback = document.getElementById("minigame-feedback");
+    elements.miniGameStartBtn = document.getElementById("minigame-start-btn");
+    elements.miniGameCancelBtn = document.getElementById("minigame-cancel-btn");
   }
 
   function bindEvents() {
@@ -447,10 +481,12 @@
       if (!button) {
         return;
       }
-      runTraining(button.dataset.trainingId);
+      startTrainingSession(button.dataset.trainingId);
     });
 
     elements.travelBtn.addEventListener("click", travelToSelectedCity);
+    elements.travelSelect.addEventListener("change", renderTravelMap);
+    elements.travelMap.addEventListener("click", handleMapCitySelection);
 
     elements.racesList.addEventListener("click", (event) => {
       const button = event.target.closest("button[data-race-id]");
@@ -470,6 +506,13 @@
 
     elements.endWeekBtn.addEventListener("click", endWeek);
     elements.newAthleteBtn.addEventListener("click", confirmResetAthlete);
+    elements.miniGameStartBtn.addEventListener("click", startMiniGameRun);
+    elements.miniGameCancelBtn.addEventListener("click", closeMiniGameModal);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && miniGameState) {
+        closeMiniGameModal();
+      }
+    });
   }
 
   function showStartScreen(hasSave) {
@@ -625,6 +668,7 @@
     renderConditionBars();
     renderTrainingActions();
     renderTravelOptions();
+    renderTravelMap();
     renderRaces();
     renderUpgrades();
     renderCareerSummary();
@@ -717,6 +761,75 @@
     if (previousValue && CITIES.some((city) => city.id === previousValue)) {
       elements.travelSelect.value = previousValue;
     }
+  }
+
+  function renderTravelMap() {
+    const selectedCityId = elements.travelSelect.value || state.location;
+    const currentCity = getCity(state.location);
+    const selectedCity = getCity(selectedCityId);
+
+    elements.travelMap.innerHTML = "";
+
+    const landConfigs = [
+      "map-land map-land-1",
+      "map-land map-land-2",
+      "map-land map-land-3",
+      "map-land map-land-4",
+      "map-land map-land-5",
+      "map-land map-land-6",
+    ];
+    for (const classes of landConfigs) {
+      const land = document.createElement("div");
+      land.className = classes;
+      elements.travelMap.appendChild(land);
+    }
+
+    const routeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    routeSvg.setAttribute("viewBox", "0 0 1000 560");
+    if (currentCity && selectedCity && currentCity.id !== selectedCity.id) {
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", `${currentCity.x * 100}`);
+      line.setAttribute("y1", `${(10 - currentCity.y) * 56}`);
+      line.setAttribute("x2", `${selectedCity.x * 100}`);
+      line.setAttribute("y2", `${(10 - selectedCity.y) * 56}`);
+      line.setAttribute("stroke", "rgba(255, 204, 102, 0.9)");
+      line.setAttribute("stroke-width", "4");
+      line.setAttribute("stroke-dasharray", "10 8");
+      routeSvg.appendChild(line);
+    }
+    elements.travelMap.appendChild(routeSvg);
+
+    for (const city of CITIES) {
+      const marker = document.createElement("button");
+      marker.type = "button";
+      marker.className = "map-city";
+      marker.dataset.cityId = city.id;
+      marker.style.left = `${city.x * 10}%`;
+      marker.style.top = `${(10 - city.y) * 10}%`;
+      marker.textContent = city.name.slice(0, 3).toUpperCase();
+      marker.title = city.name;
+      marker.setAttribute("aria-label", city.name);
+
+      if (city.id === state.location) {
+        marker.classList.add("map-city-current");
+      }
+      if (city.id === selectedCityId) {
+        marker.classList.add("map-city-selected");
+      }
+      if (!state.unlockedCities.includes(city.id) && city.id !== state.location) {
+        marker.classList.add("map-city-locked");
+      }
+      elements.travelMap.appendChild(marker);
+    }
+  }
+
+  function handleMapCitySelection(event) {
+    const marker = event.target.closest("button[data-city-id]");
+    if (!marker) {
+      return;
+    }
+    elements.travelSelect.value = marker.dataset.cityId;
+    renderTravelMap();
   }
 
   function renderRaces() {
@@ -873,24 +986,320 @@
     elements.logList.appendChild(fragment);
   }
 
-  function runTraining(trainingId) {
+  function startTrainingSession(trainingId) {
     const training = TRAINING_OPTIONS.find((item) => item.id === trainingId);
     if (!training) {
       return;
     }
-    if (!spendActionIfAvailable()) {
+    if (state.actionsRemaining <= 0) {
+      showToast("No actions left. End week to continue.");
       return;
     }
 
-    applyStatRanges(state.stats, training.stats);
-    state.energy += training.energy;
-    state.fatigue += training.fatigue;
-    state.morale += training.morale;
-    normalizeState(state);
+    openMiniGameModal(training);
+  }
 
-    addLog(training.log);
+  function openMiniGameModal(training) {
+    cleanupMiniGameRuntime();
+    const mode = MINI_GAME_MODES[training.miniGame] || MINI_GAME_MODES.rhythm;
+
+    miniGameState = {
+      training,
+      modeKey: training.miniGame in MINI_GAME_MODES ? training.miniGame : "rhythm",
+      onCleanup: null,
+    };
+
+    elements.miniGameTitle.textContent = training.label;
+    elements.miniGameType.textContent = mode.label;
+    elements.miniGameInstructions.textContent = mode.instructions;
+    elements.miniGameFeedback.textContent = "Complete the mini-game to lock in this training session.";
+    elements.miniGameStartBtn.disabled = false;
+    elements.miniGameStartBtn.textContent = "Start Mini-Game";
+    elements.miniGameStage.innerHTML = '<div class="mini-center">Press Start when you are ready.</div>';
+    elements.miniGameModal.classList.remove("hidden");
+  }
+
+  function closeMiniGameModal() {
+    cleanupMiniGameRuntime();
+    miniGameState = null;
+    elements.miniGameModal.classList.add("hidden");
+  }
+
+  function cleanupMiniGameRuntime() {
+    if (!miniGameState || typeof miniGameState.onCleanup !== "function") {
+      return;
+    }
+    miniGameState.onCleanup();
+    miniGameState.onCleanup = null;
+  }
+
+  function startMiniGameRun() {
+    if (!miniGameState) {
+      return;
+    }
+
+    elements.miniGameStartBtn.disabled = true;
+    elements.miniGameFeedback.textContent = "";
+
+    if (miniGameState.modeKey === "memory") {
+      startMemoryMiniGame();
+      return;
+    }
+    if (miniGameState.modeKey === "sprint") {
+      startSprintMiniGame();
+      return;
+    }
+    startRhythmMiniGame();
+  }
+
+  function startRhythmMiniGame() {
+    const rounds = 8;
+    let round = 1;
+    let totalScore = 0;
+    let targetCenter = randomBetween(30, 70);
+    const targetWidth = 18;
+    const startTime = performance.now();
+
+    elements.miniGameStage.innerHTML = `
+      <div class="mini-row">
+        <span id="rhythm-round-label">Round 1/${rounds}</span>
+        <span>Click in the green zone</span>
+      </div>
+      <div class="mini-meter">
+        <div id="rhythm-target" class="mini-target-zone"></div>
+        <div id="rhythm-cursor" class="mini-cursor"></div>
+      </div>
+      <button id="rhythm-hit-btn" type="button" class="btn btn-secondary btn-wide">Hit Zone</button>
+    `;
+    const roundLabel = document.getElementById("rhythm-round-label");
+    const targetEl = document.getElementById("rhythm-target");
+    const cursor = document.getElementById("rhythm-cursor");
+    const hitBtn = document.getElementById("rhythm-hit-btn");
+
+    const setTarget = () => {
+      targetCenter = randomBetween(24, 76);
+      const left = targetCenter - targetWidth / 2;
+      targetEl.style.left = `${left}%`;
+      targetEl.style.width = `${targetWidth}%`;
+    };
+    setTarget();
+
+    const renderCursor = () => {
+      const elapsed = (performance.now() - startTime) / 1000;
+      const phase = ((Math.sin(elapsed * 3.6) + 1) / 2) * 100;
+      cursor.style.left = `${phase}%`;
+      return phase;
+    };
+    const rafId = requestAnimationFrame(function tick() {
+      renderCursor();
+      miniGameState.onCleanupRaf = requestAnimationFrame(tick);
+    });
+    miniGameState.onCleanupRaf = rafId;
+
+    const handleHit = () => {
+      const cursorPos = renderCursor();
+      const distance = Math.abs(cursorPos - targetCenter);
+      const isInside = distance <= targetWidth / 2;
+      const hitScore = isInside ? Math.max(15, Math.round(100 - distance * 7.2)) : 0;
+      totalScore += hitScore;
+      round += 1;
+      if (round > rounds) {
+        const finalScore = Math.round(totalScore / rounds);
+        finishTrainingMiniGame(finalScore, `Rhythm score ${finalScore}%`);
+        return;
+      }
+      roundLabel.textContent = `Round ${round}/${rounds}`;
+      setTarget();
+    };
+
+    hitBtn.addEventListener("click", handleHit);
+    miniGameState.onCleanup = () => {
+      cancelAnimationFrame(miniGameState.onCleanupRaf);
+      hitBtn.removeEventListener("click", handleHit);
+    };
+  }
+
+  function startMemoryMiniGame() {
+    const symbols = ["▲", "◆", "●", "■"];
+    const sequenceLength = 6;
+    const sequence = Array.from({ length: sequenceLength }, () => randomItem(symbols));
+    const input = [];
+    let revealIndex = 0;
+    let revealTimerId = null;
+
+    elements.miniGameStage.innerHTML = `
+      <div class="mini-row">
+        <span id="memory-status">Watch the sequence</span>
+        <span>Length ${sequenceLength}</span>
+      </div>
+      <div id="memory-preview" class="mini-center">...</div>
+      <div id="memory-grid" class="mini-sequence-grid"></div>
+    `;
+    const preview = document.getElementById("memory-preview");
+    const status = document.getElementById("memory-status");
+    const grid = document.getElementById("memory-grid");
+
+    for (const symbol of symbols) {
+      const key = document.createElement("button");
+      key.type = "button";
+      key.className = "mini-sequence-key";
+      key.dataset.symbol = symbol;
+      key.textContent = symbol;
+      key.disabled = true;
+      grid.appendChild(key);
+    }
+
+    const keys = Array.from(grid.querySelectorAll("button"));
+    const revealStep = () => {
+      if (revealIndex >= sequence.length) {
+        preview.textContent = "Repeat the pattern.";
+        status.textContent = "Your turn";
+        for (const key of keys) {
+          key.disabled = false;
+        }
+        return;
+      }
+      const symbol = sequence[revealIndex];
+      preview.textContent = symbol;
+      for (const key of keys) {
+        key.classList.toggle("active", key.dataset.symbol === symbol);
+      }
+      revealIndex += 1;
+      revealTimerId = window.setTimeout(revealStep, 650);
+    };
+    revealStep();
+
+    const handleInput = (event) => {
+      const key = event.target.closest("button[data-symbol]");
+      if (!key) {
+        return;
+      }
+      const symbol = key.dataset.symbol;
+      input.push(symbol);
+      const index = input.length - 1;
+      const expected = sequence[index];
+      const isCorrect = symbol === expected;
+      preview.textContent = `${input.join(" ")}`;
+
+      if (!isCorrect) {
+        const finalScore = Math.round((index / sequence.length) * 100);
+        finishTrainingMiniGame(finalScore, "Pattern broken early.");
+        return;
+      }
+      if (input.length === sequence.length) {
+        finishTrainingMiniGame(100, "Perfect recall.");
+      }
+    };
+
+    grid.addEventListener("click", handleInput);
+    miniGameState.onCleanup = () => {
+      if (revealTimerId) {
+        clearTimeout(revealTimerId);
+      }
+      grid.removeEventListener("click", handleInput);
+    };
+  }
+
+  function startSprintMiniGame() {
+    let hits = 0;
+    let targetExpiresId = null;
+    const durationMs = 7500;
+    const startedAt = Date.now();
+
+    elements.miniGameStage.innerHTML = `
+      <div class="mini-row">
+        <span id="sprint-timer">Time 7.5s</span>
+        <span id="sprint-hits">Hits 0</span>
+      </div>
+      <div id="sprint-field" class="mini-target-field"></div>
+    `;
+    const timerLabel = document.getElementById("sprint-timer");
+    const hitsLabel = document.getElementById("sprint-hits");
+    const field = document.getElementById("sprint-field");
+
+    const placeTarget = () => {
+      field.innerHTML = "";
+      const target = document.createElement("button");
+      target.type = "button";
+      target.className = "mini-target";
+      target.textContent = "Tap";
+      target.style.left = `${randomInt(4, 80)}%`;
+      target.style.top = `${randomInt(6, 70)}%`;
+      field.appendChild(target);
+      if (targetExpiresId) {
+        clearTimeout(targetExpiresId);
+      }
+      targetExpiresId = window.setTimeout(placeTarget, 650);
+    };
+
+    const countdown = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      const remaining = Math.max(0, durationMs - elapsed);
+      timerLabel.textContent = `Time ${(remaining / 1000).toFixed(1)}s`;
+      if (remaining <= 0) {
+        const score = clamp(Math.round((hits / 16) * 100), 0, 100);
+        finishTrainingMiniGame(score, `Sprint taps: ${hits}`);
+      }
+    }, 100);
+
+    const handleTap = (event) => {
+      const target = event.target.closest("button.mini-target");
+      if (!target) {
+        return;
+      }
+      hits += 1;
+      hitsLabel.textContent = `Hits ${hits}`;
+      placeTarget();
+    };
+
+    field.addEventListener("click", handleTap);
+    placeTarget();
+    miniGameState.onCleanup = () => {
+      clearInterval(countdown);
+      if (targetExpiresId) {
+        clearTimeout(targetExpiresId);
+      }
+      field.removeEventListener("click", handleTap);
+    };
+  }
+
+  function finishTrainingMiniGame(score, contextMessage) {
+    if (!miniGameState) {
+      return;
+    }
+    const cappedScore = clamp(Math.round(score), 0, 100);
+    const training = miniGameState.training;
+    const outcome = applyTrainingFromMiniGame(training, cappedScore);
+    addLog(
+      `${training.log} Mini-game ${cappedScore}% (${contextMessage}) for +${outcome.rankingPoints} RP and +${outcome.stars} stars.`
+    );
+    elements.miniGameFeedback.textContent = `Session complete: ${cappedScore}% | +${outcome.rankingPoints} RP | +${outcome.stars} stars`;
+    closeMiniGameModal();
     render();
-    showToast(`${training.label} completed.`);
+    showToast(`${training.label}: ${cappedScore}% result.`);
+  }
+
+  function applyTrainingFromMiniGame(training, score) {
+    if (!spendActionIfAvailable()) {
+      return { rankingPoints: 0, stars: 0 };
+    }
+
+    const quality = clamp(score, 0, 100);
+    const qualityShift = (quality - 50) / 50;
+    const benefitMultiplier = clamp(1 + qualityShift * 0.55, 0.45, 1.55);
+    const strainMultiplier = clamp(1 - qualityShift * 0.35, 0.65, 1.35);
+
+    applyScaledStatRanges(state.stats, training.stats, benefitMultiplier, strainMultiplier);
+    state.energy += scaleTrainingDelta(training.energy, benefitMultiplier, strainMultiplier);
+    state.fatigue += scaleTrainingDelta(training.fatigue, benefitMultiplier, strainMultiplier);
+    state.morale += scaleTrainingDelta(training.morale, benefitMultiplier, strainMultiplier);
+
+    const rankingPoints = Math.max(0, Math.round(2 + quality / 11));
+    const stars = Math.max(0, Math.round(quality / 22));
+    state.rankingPoints += rankingPoints;
+    state.stars += stars;
+    normalizeState(state);
+    return { rankingPoints, stars };
   }
 
   function travelToSelectedCity() {
@@ -1471,6 +1880,32 @@
     for (const statKey of statKeys) {
       applyRangeToStat(targetStats, statKey, ranges[statKey]);
     }
+  }
+
+  function applyScaledStatRanges(targetStats, ranges, benefitMultiplier, strainMultiplier) {
+    if (!ranges || typeof ranges !== "object") {
+      return;
+    }
+    const statKeys = Object.keys(ranges);
+    for (const statKey of statKeys) {
+      const range = ranges[statKey];
+      if (!Array.isArray(range) || range.length !== 2 || !Number.isFinite(targetStats[statKey])) {
+        continue;
+      }
+      const baseDelta = randomInt(range[0], range[1]);
+      const scaledDelta = scaleTrainingDelta(baseDelta, benefitMultiplier, strainMultiplier);
+      targetStats[statKey] = clamp(targetStats[statKey] + scaledDelta, MIN_STAT, MAX_STAT);
+    }
+  }
+
+  function scaleTrainingDelta(delta, benefitMultiplier, strainMultiplier) {
+    if (!Number.isFinite(delta)) {
+      return 0;
+    }
+    if (delta >= 0) {
+      return Math.round(delta * benefitMultiplier);
+    }
+    return Math.round(delta * strainMultiplier);
   }
 
   function applyRangeToStat(targetStats, statKey, range) {

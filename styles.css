@@ -199,6 +199,101 @@ h3 {
   gap: 8px;
 }
 
+.travel-map {
+  position: relative;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #0f2248 0%, #0a1732 100%);
+  min-height: 180px;
+  overflow: hidden;
+}
+
+.travel-map svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.map-land {
+  position: absolute;
+  background: rgba(86, 151, 107, 0.48);
+  border: 1px solid rgba(120, 195, 140, 0.35);
+  border-radius: 45% 55% 45% 55%;
+}
+
+.map-land-1 {
+  width: 29%;
+  height: 40%;
+  left: 8%;
+  top: 22%;
+}
+
+.map-land-2 {
+  width: 20%;
+  height: 32%;
+  left: 24%;
+  top: 54%;
+}
+
+.map-land-3 {
+  width: 31%;
+  height: 36%;
+  left: 39%;
+  top: 24%;
+}
+
+.map-land-4 {
+  width: 12%;
+  height: 16%;
+  left: 54%;
+  top: 58%;
+}
+
+.map-land-5 {
+  width: 30%;
+  height: 36%;
+  left: 66%;
+  top: 29%;
+}
+
+.map-land-6 {
+  width: 16%;
+  height: 20%;
+  left: 78%;
+  top: 66%;
+}
+
+.map-city {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  color: var(--text);
+  background: rgba(9, 14, 30, 0.86);
+  font-size: 0.68rem;
+  padding: 3px 7px;
+  transform: translate(-50%, -50%);
+}
+
+.map-city:hover {
+  border-color: var(--primary);
+}
+
+.map-city-current {
+  background: rgba(73, 163, 255, 0.28);
+  border-color: rgba(73, 163, 255, 0.9);
+}
+
+.map-city-selected {
+  box-shadow: 0 0 0 2px rgba(255, 204, 102, 0.65);
+}
+
+.map-city-locked {
+  opacity: 0.7;
+}
+
 select,
 input {
   width: 100%;
@@ -331,6 +426,108 @@ label {
   align-items: center;
   padding: 20px;
   z-index: 20;
+}
+
+.minigame-card {
+  width: min(560px, 100%);
+}
+
+.minigame-stage {
+  margin-top: 10px;
+  margin-bottom: 8px;
+  min-height: 170px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.16);
+  padding: 10px;
+}
+
+.minigame-feedback {
+  color: var(--muted);
+  min-height: 1.2em;
+  margin-bottom: 8px;
+  font-size: 0.84rem;
+}
+
+.mini-center {
+  height: 100%;
+  min-height: 148px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--muted);
+}
+
+.mini-meter {
+  position: relative;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 20px 2px 12px;
+}
+
+.mini-target-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: rgba(45, 223, 164, 0.45);
+}
+
+.mini-cursor {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 28px;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.mini-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.mini-sequence-grid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.mini-sequence-key {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #223256;
+  color: var(--text);
+  font-size: 1.05rem;
+  padding: 14px 0;
+}
+
+.mini-sequence-key.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(73, 163, 255, 0.7) inset;
+}
+
+.mini-target-field {
+  position: relative;
+  min-height: 150px;
+}
+
+.mini-target {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: radial-gradient(circle at 35% 35%, #68b8ff, #2459ad);
+  color: #fff;
+  font-weight: 700;
 }
 
 .start-card {

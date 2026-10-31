@@ -26,8 +26,8 @@ You can also open `index.html` in a browser, but using a local server is recomme
 
 - Enter your character name to begin (no login required)
 - Use weekly actions to:
-  - Train disciplines and improve stats
-  - Travel to race cities
+  - Play training mini-games that determine stat gains and training rewards
+  - Travel to race cities via the in-game world map
   - Enter races for stars and ranking points
 - Spend stars on:
   - Travel between global race venues
