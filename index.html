@@ -26,6 +26,7 @@
     </div>
 
     <main id="app" class="app hidden">
+      <div id="tab-status" class="tab-panel active" role="tabpanel">
       <header class="card">
         <div class="header-row">
           <h2 id="athlete-name"></h2>
@@ -64,12 +65,25 @@
         <div id="condition-bars" class="bar-list"></div>
       </section>
 
+      <section class="card action-footer">
+        <button id="end-week-btn" class="btn btn-primary btn-wide">End Week</button>
+      </section>
+      </div>
+      <div id="tab-training" class="tab-panel" role="tabpanel">
       <section class="card">
         <h3>Training</h3>
         <p class="muted">Each training session consumes one action this week.</p>
         <div id="training-actions" class="action-grid"></div>
       </section>
 
+      <section class="card">
+        <h3>Gear Upgrades</h3>
+        <p class="muted">Spend stars to improve your split times.</p>
+        <div id="upgrades-list" class="stack"></div>
+      </section>
+
+      </div>
+      <div id="tab-travel" class="tab-panel" role="tabpanel">
       <section class="card">
         <h3>Travel</h3>
         <p class="muted">Travel to race venues and unlock better events.</p>
@@ -85,12 +99,8 @@
         <div id="races-list" class="stack"></div>
       </section>
 
-      <section class="card">
-        <h3>Gear Upgrades</h3>
-        <p class="muted">Spend stars to improve your split times.</p>
-        <div id="upgrades-list" class="stack"></div>
-      </section>
-
+      </div>
+      <div id="tab-career" class="tab-panel" role="tabpanel">
       <section class="card">
         <h3>Career</h3>
         <div id="career-summary" class="career-grid"></div>
@@ -102,9 +112,15 @@
       </section>
 
       <section class="card action-footer">
-        <button id="end-week-btn" class="btn btn-primary btn-wide">End Week</button>
         <button id="new-athlete-btn" class="btn btn-ghost btn-wide">Start New Athlete</button>
       </section>
+      </div>
+      <nav class="tab-bar" role="tablist">
+        <button class="tab-btn active" data-tab="status" role="tab"><span class="tab-icon">📊</span>Status</button>
+        <button class="tab-btn" data-tab="training" role="tab"><span class="tab-icon">🏋️</span>Training</button>
+        <button class="tab-btn" data-tab="travel" role="tab"><span class="tab-icon">🌍</span>Travel</button>
+        <button class="tab-btn" data-tab="career" role="tab"><span class="tab-icon">🏆</span>Career</button>
+      </nav>
     </main>
 
     <div id="toast" class="toast hidden" aria-live="polite"></div>
