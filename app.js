@@ -506,6 +506,15 @@
 
     elements.endWeekBtn.addEventListener("click", endWeek);
     elements.newAthleteBtn.addEventListener("click", confirmResetAthlete);
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        document.querySelectorAll(".tab-panel").forEach((p) => {
+          p.classList.toggle("active", p.id === "tab-" + btn.dataset.tab);
+        });
+        window.scrollTo(0, 0);
+      });
+    });
     elements.miniGameStartBtn.addEventListener("click", startMiniGameRun);
     elements.miniGameCancelBtn.addEventListener("click", closeMiniGameModal);
     document.addEventListener("keydown", (event) => {
