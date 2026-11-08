@@ -31,6 +31,7 @@ This file describes race travel, the map, the race calendar, simulation and rank
 - If available, an event requiring more than 900 and up to 1,700 additional points has a 65% chance of being added; remaining slots are filled from unused templates. ✅
 - Calendar listings may therefore include races the athlete cannot yet enter, including high-requirement filler events. ✅
 - Each race card shows its name, tier, format, city, difficulty, entry fee, maximum listed prize, target ranking points and minimum ranking-point requirement. ✅
+- Race cards preview a venue course profile and conditions, identify the event tier, and display morale's current effect on race power. ✅
 - Entry requires enough ranking points, being in the race city, enough stars for the fee and at least one action; the card displays the first unmet requirement in that order. ✅
 - Entering a race spends one action and the entry fee, simulates the result immediately and removes that race instance from the calendar. ✅
 - Failed eligibility checks return the action; there is no separate minimum energy requirement for entry. ✅
@@ -46,8 +47,8 @@ This file describes race travel, the map, the race calendar, simulation and rank
 
 ## Simulation and rewards
 
-- Each discipline's simulated power combines its attribute, stamina, focus, corresponding gear level, energy, fatigue and a random variation. ✅
-- Gear contributes three power per level to its discipline; higher energy helps and higher fatigue hurts, while morale has no direct effect. ✅
+- Each discipline's simulated power combines its attribute, stamina, focus, corresponding gear level, energy, fatigue, morale, championship legacy bonus and a random variation. ✅
+- Gear contributes three power per level to its discipline; morale contributes (morale - 50) × 0.06 power, bounded from -3 to +3 per leg, and a championship legacy bonus applies equally to all legs. ✅
 - Each leg's time is based on the format's base time and the difference between race difficulty plus 8 and the athlete's leg power, with a bounded time multiplier. ✅
 - The fixed transition time is added to the three leg times; the game does not offer player-controlled transitions. ✅
 - The game generates the other competitors' times from the format, difficulty, event tier and random variation; placement is one plus the number of opponents with a faster time. ✅
@@ -57,6 +58,7 @@ This file describes race travel, the map, the race calendar, simulation and rank
 - Race energy cost and fatigue gain increase with the format's base costs and race difficulty; they are applied after the simulation. ✅
 - Race morale changes by +8 for a win, +6 for second, +4 for third, +2 for fourth through tenth, 0 through the top 60% and -3 otherwise. ✅
 - The result is recorded in the journey log with placement, field size, total time and rewards, while a toast announces the placement. ✅
+- Every race result in the journey log records the swim, bike, run and transition split times. ✅
 - Race completion updates races entered, wins, podiums and best finish; rank recalculation updates the best world rank. ✅
 
 ## World ranking and progression
@@ -67,4 +69,5 @@ This file describes race travel, the map, the race calendar, simulation and rank
 - Race qualification uses ranking points rather than world rank or the displayed rank tier. ✅
 - Ranking points earned from races and training unlock higher-requirement races and automatically trigger one-time milestone rewards. ✅
 - Training and attribute improvements can also improve world rank without racing; race wins and podiums add further ranking bonuses. ✅
-- Proposed feature: Record swim, bike, run and transition split times for each race in the journey log so athletes can track discipline-specific performance trends.
+- At least 250 race ranking points and two race entries in a season qualify an athlete for a week-12 championship; if qualification is reached during week 12, the championship is added to the calendar. ✅
+- The season championship is held in the athlete's current city, has no entry fee and uses an Olympic-format simulation; winning grants 100 stars and +2 persistent race power, stacking to a +10 maximum. ✅

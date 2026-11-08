@@ -6,6 +6,7 @@
   const ACTIONS_PER_WEEK = 3;
   const MAX_GEAR_LEVEL = 6;
   const MAX_LOG_ENTRIES = 80;
+  const MAX_STAR_TRANSACTIONS = 100;
   const MIN_STAT = 35;
   const MAX_STAT = 100;
 
@@ -403,6 +404,21 @@
     Pro: 6,
     Elite: 10,
     World: 14,
+    Championship: 8,
+  };
+
+  const RACE_COURSE_DETAILS = {
+    london: { course: "Riverfront urban circuit", conditions: "Cool, changeable conditions" },
+    barcelona: { course: "Coastal road course", conditions: "Warm sea breeze" },
+    nice: { course: "Technical coastal course", conditions: "Sunny with crosswinds" },
+    boulder: { course: "High-altitude lake and road course", conditions: "Thin air, dry conditions" },
+    rio: { course: "Hilly coastal circuit", conditions: "Hot and humid" },
+    "cape-town": { course: "Exposed coastal course", conditions: "Cool with strong winds" },
+    dubai: { course: "Flat desert circuit", conditions: "Hot and dry" },
+    singapore: { course: "Flat city course", conditions: "Hot, humid night race" },
+    tokyo: { course: "Harbourfront city course", conditions: "Mild with coastal wind" },
+    sydney: { course: "Harbour and rolling-road course", conditions: "Mild with sea breeze" },
+    kona: { course: "Volcanic island course", conditions: "Hot with trade winds" },
   };
 
   const elements = {};
@@ -454,6 +470,7 @@
     elements.upgradesList = document.getElementById("upgrades-list");
     elements.careerSummary = document.getElementById("career-summary");
     elements.logList = document.getElementById("log-list");
+    elements.transactionList = document.getElementById("transaction-list");
     elements.endWeekBtn = document.getElementById("end-week-btn");
     elements.newAthleteBtn = document.getElementById("new-athlete-btn");
     elements.toast = document.getElementById("toast");
@@ -604,6 +621,13 @@
       unlockedCities: ["london", "barcelona"],
       upcomingRaces: [],
       eventHistory: [],
+      starTransactions: [],
+      trainingBests: {},
+      seasonRankingPoints: 0,
+      seasonRacesEntered: 0,
+      championshipEnteredSeason: 0,
+      championshipsWon: 0,
+      championshipPowerBonus: 0,
     };
   }
 
@@ -623,6 +647,11 @@
         ? rawState.upcomingRaces.filter(isValidRaceInstance)
         : [],
       eventHistory: Array.isArray(rawState.eventHistory) ? rawState.eventHistory : [],
+      starTransactions: Array.isArray(rawState.starTransactions) ? rawState.starTransactions : [],
+      trainingBests:
+        rawState.trainingBests && typeof rawState.trainingBests === "object"
+          ? rawState.trainingBests
+          : {},
     };
     normalizeState(hydrated);
     return hydrated;
@@ -639,6 +668,40 @@
     );
     targetState.stars = Math.max(0, Math.round(numberOr(targetState.stars, 0)));
     targetState.rankingPoints = Math.max(0, Math.round(numberOr(targetState.rankingPoints, 0)));
+    targetState.seasonRankingPoints = Math.max(
+      0,
+      Math.round(numberOr(targetState.seasonRankingPoints, 0))
+    );
+    targetState.seasonRacesEntered = Math.max(
+      0,
+      Math.round(numberOr(targetState.seasonRacesEntered, 0))
+    );
+    targetState.championshipEnteredSeason = Math.max(
+      0,
+      Math.round(numberOr(targetState.championshipEnteredSeason, 0))
+    );
+    targetState.championshipsWon = Math.max(
+      0,
+      Math.round(numberOr(targetState.championshipsWon, 0))
+    );
+    targetState.championshipPowerBonus = clamp(
+      Math.round(numberOr(targetState.championshipPowerBonus, 0)),
+      0,
+      10
+    );
+    targetState.starTransactions = targetState.starTransactions
+      .filter(
+        (transaction) =>
+          transaction &&
+          Number.isFinite(transaction.week) &&
+          typeof transaction.source === "string" &&
+          Number.isFinite(transaction.amount) &&
+          Number.isFinite(transaction.balance)
+      )
+      .slice(0, MAX_STAR_TRANSACTIONS);
+    for (const [trainingId, score] of Object.entries(targetState.trainingBests)) {
+      targetState.trainingBests[trainingId] = clamp(Math.round(numberOr(score, 0)), 0, 100);
+    }
     targetState.energy = clamp(numberOr(targetState.energy, 70), 0, 100);
     targetState.fatigue = clamp(numberOr(targetState.fatigue, 10), 0, 100);
     targetState.morale = clamp(numberOr(targetState.morale, 70), 0, 100);
@@ -682,6 +745,7 @@
     renderUpgrades();
     renderCareerSummary();
     renderLog();
+    renderTransactions();
     saveState();
   }
 
@@ -867,13 +931,22 @@
 
       const meta = document.createElement("div");
       meta.className = "race-meta";
-      meta.innerHTML = [
+      const locationDetails = RACE_COURSE_DETAILS[race.location];
+      const moraleBonus = raceMoraleBonus(state);
+      const metaLines = [
         `${RACE_FORMATS[race.format].label} | ${getCityName(race.location)} | Difficulty ${race.difficulty}`,
         `Entry ${race.entry} stars | Prize up to ${race.prize} stars`,
         `Ranking points target: ${race.points} | Requires ${race.minPoints} RP`,
-      ]
-        .map((line) => `<div>${line}</div>`)
-        .join("");
+        `Course: ${locationDetails.course}`,
+        `Conditions: ${locationDetails.conditions}`,
+        `Event tier: ${race.tier}`,
+        `Current morale race modifier: ${moraleBonus >= 0 ? "+" : ""}${moraleBonus.toFixed(1)} power per leg`,
+      ];
+      for (const line of metaLines) {
+        const row = document.createElement("div");
+        row.textContent = line;
+        meta.appendChild(row);
+      }
 
       const enterButton = document.createElement("button");
       enterButton.className = "btn btn-secondary btn-wide";
@@ -971,6 +1044,10 @@
       `Win Rate: <strong>${winRate}%</strong>`,
       `Best World Rank: <strong>#${state.career.bestRank}</strong>`,
       `Best Finish: <strong>${state.career.bestFinish ? ordinal(state.career.bestFinish) : "-"}</strong>`,
+      `Season Results: <strong>${state.seasonRacesEntered} races, ${state.seasonRankingPoints} RP</strong>`,
+      `Season Championship: <strong>${state.seasonRankingPoints}/250 RP and ${state.seasonRacesEntered}/2 races</strong> (qualifies in week 12)`,
+      `Season Championships Won: <strong>${state.championshipsWon}</strong>`,
+      `Championship Legacy Bonus: <strong>+${state.championshipPowerBonus} race power</strong>`,
       nextMilestone
         ? `Next Milestone: <strong>${nextMilestone.label}</strong> (${state.rankingPoints}/${nextMilestone.points} RP)`
         : "Next Milestone: <strong>All milestone rewards claimed</strong>",
@@ -981,6 +1058,18 @@
       row.innerHTML = item;
       elements.careerSummary.appendChild(row);
     }
+
+    const trainingBests = document.createElement("div");
+    trainingBests.className = "career-grid";
+    for (const training of TRAINING_OPTIONS) {
+      const score = state.trainingBests[training.id];
+      const row = document.createElement("div");
+      row.textContent = `${training.label} personal best: ${
+        score === undefined ? "-" : `${score}%`
+      }`;
+      trainingBests.appendChild(row);
+    }
+    elements.careerSummary.appendChild(trainingBests);
   }
 
   function renderLog() {
@@ -993,6 +1082,20 @@
       fragment.appendChild(li);
     }
     elements.logList.appendChild(fragment);
+  }
+
+  function renderTransactions() {
+    elements.transactionList.innerHTML = "";
+    const fragment = document.createDocumentFragment();
+    for (const transaction of state.starTransactions) {
+      const item = document.createElement("li");
+      const sign = transaction.amount > 0 ? "+" : "";
+      item.textContent = `Week ${transaction.week}: ${transaction.source} (${sign}${
+        transaction.amount
+      } stars; balance ${transaction.balance})`;
+      fragment.appendChild(item);
+    }
+    elements.transactionList.appendChild(fragment);
   }
 
   function startTrainingSession(trainingId) {
@@ -1278,14 +1381,19 @@
     }
     const cappedScore = clamp(Math.round(score), 0, 100);
     const training = miniGameState.training;
+    const previousBest = state.trainingBests[training.id] ?? -1;
+    const isPersonalBest = cappedScore > previousBest;
+    state.trainingBests[training.id] = Math.max(previousBest, cappedScore);
     const outcome = applyTrainingFromMiniGame(training, cappedScore);
     addLog(
-      `${training.log} Mini-game ${cappedScore}% (${contextMessage}) for +${outcome.rankingPoints} RP and +${outcome.stars} stars.`
+      `${training.log} Mini-game ${cappedScore}% (${contextMessage})${isPersonalBest ? " New personal best!" : ` Personal best: ${state.trainingBests[training.id]}%.`} Rewards: +${outcome.rankingPoints} RP and +${outcome.stars} stars.`
     );
-    elements.miniGameFeedback.textContent = `Session complete: ${cappedScore}% | +${outcome.rankingPoints} RP | +${outcome.stars} stars`;
+    elements.miniGameFeedback.textContent = `Session: ${cappedScore}% | Personal best: ${state.trainingBests[training.id]}% | +${outcome.rankingPoints} RP | +${outcome.stars} stars`;
     closeMiniGameModal();
     render();
-    showToast(`${training.label}: ${cappedScore}% result.`);
+    showToast(
+      `${training.label}: ${cappedScore}% | Personal best: ${state.trainingBests[training.id]}%.`
+    );
   }
 
   function applyTrainingFromMiniGame(training, score) {
@@ -1306,7 +1414,7 @@
     const rankingPoints = Math.max(0, Math.round(2 + quality / 11));
     const stars = Math.max(0, Math.round(quality / 22));
     state.rankingPoints += rankingPoints;
-    state.stars += stars;
+    changeStars(stars, `${training.label} training`);
     normalizeState(state);
     return { rankingPoints, stars };
   }
@@ -1331,7 +1439,7 @@
       return;
     }
 
-    state.stars -= travelCost;
+    changeStars(-travelCost, `Travel to ${getCityName(destination)}`);
     state.location = destination;
     state.energy -= 7;
     state.fatigue += 6;
@@ -1370,10 +1478,12 @@
       return;
     }
 
-    state.stars -= race.entry;
+    changeStars(-race.entry, `${race.name} entry fee`);
     const result = simulateRace(race, state);
-    state.stars += result.starsReward;
+    changeStars(result.starsReward, `${race.name} race prize`);
     state.rankingPoints += result.pointsReward;
+    state.seasonRankingPoints += result.pointsReward;
+    state.seasonRacesEntered += 1;
     state.energy -= result.energyCost;
     state.fatigue += result.fatigueGain;
     state.morale += result.moraleDelta;
@@ -1385,16 +1495,29 @@
     if (result.placement <= 3) {
       state.career.podiums += 1;
     }
+    if (race.isChampionship && result.placement === 1) {
+      state.championshipsWon += 1;
+      state.championshipPowerBonus = Math.min(10, state.championshipPowerBonus + 2);
+      changeStars(100, `Season ${state.season} championship victory`);
+      addLog(
+        `Season ${state.season} champion! Earned 100 stars and +2 legacy race power for future seasons.`
+      );
+    }
     if (!state.career.bestFinish || result.placement < state.career.bestFinish) {
       state.career.bestFinish = result.placement;
     }
 
     state.upcomingRaces = state.upcomingRaces.filter((event) => event.instanceId !== instanceId);
+    addSeasonChampionshipToCalendar(state);
     normalizeState(state);
 
     addLog(
       `${race.name}: ${ordinal(result.placement)}/${race.fieldSize} in ${formatMinutes(
         result.totalTime
+      )}. Splits: swim ${formatMinutes(result.swimTime)}, bike ${formatMinutes(
+        result.bikeTime
+      )}, run ${formatMinutes(result.runTime)}, transitions ${formatMinutes(
+        result.transitionTime
       )}. Rewards +${result.pointsReward} RP, +${result.starsReward} stars.`
     );
     showToast(`${race.name}: ${ordinal(result.placement)} place.`);
@@ -1418,11 +1541,16 @@
     }
 
     state.week += 1;
+    const previousSeason = state.season;
     state.season = Math.floor((state.week - 1) / 12) + 1;
     state.actionsRemaining = ACTIONS_PER_WEEK;
+    if (state.season !== previousSeason) {
+      state.seasonRankingPoints = 0;
+      state.seasonRacesEntered = 0;
+    }
 
     const sponsorPayout = 18 + Math.max(0, Math.floor((7000 - state.worldRank) / 460));
-    state.stars += sponsorPayout;
+    changeStars(sponsorPayout, "Weekly sponsor payout");
     state.energy += 18;
     state.fatigue -= 22;
     state.morale += randomInt(-1, 3);
@@ -1445,7 +1573,10 @@
       return;
     }
 
-    state.stars += numberOr(event.stars, 0);
+    const eventStars = numberOr(event.stars, 0);
+    if (eventStars) {
+      changeStars(eventStars, event.message);
+    }
     state.energy += numberOr(event.energy, 0);
     state.fatigue += numberOr(event.fatigue, 0);
     state.morale += numberOr(event.morale, 0);
@@ -1474,7 +1605,7 @@
       return;
     }
 
-    state.stars -= cost;
+    changeStars(-cost, `${upgradeLabel(upgradeType)} upgrade`);
     state.gear[upgradeType] += 1;
     state.morale += 1;
     normalizeState(state);
@@ -1494,7 +1625,7 @@
         continue;
       }
       targetState.milestonesClaimed.push(milestone.id);
-      targetState.stars += milestone.stars;
+      changeStars(milestone.stars, `${milestone.label} milestone`, targetState);
       targetState.morale += 3;
       addLog(`Milestone unlocked: ${milestone.label}. Bonus +${milestone.stars} stars.`);
       showToast(`Milestone: ${milestone.label}`);
@@ -1523,6 +1654,7 @@
 
   function simulateRace(race, gameState) {
     const format = RACE_FORMATS[race.format];
+    const moraleModifier = raceMoraleBonus(gameState);
     const swimPower =
       gameState.stats.swim * 0.68 +
       gameState.stats.stamina * 0.18 +
@@ -1530,6 +1662,8 @@
       gameState.gear.swim * 3 +
       gameState.energy * 0.07 -
       gameState.fatigue * 0.14 +
+      gameState.championshipPowerBonus +
+      moraleModifier +
       randomBetween(-3, 3);
 
     const bikePower =
@@ -1539,6 +1673,8 @@
       gameState.gear.bike * 3 +
       gameState.energy * 0.07 -
       gameState.fatigue * 0.14 +
+      gameState.championshipPowerBonus +
+      moraleModifier +
       randomBetween(-3, 3);
 
     const runPower =
@@ -1548,13 +1684,16 @@
       gameState.gear.run * 3 +
       gameState.energy * 0.07 -
       gameState.fatigue * 0.14 +
+      gameState.championshipPowerBonus +
+      moraleModifier +
       randomBetween(-3, 3);
 
     const targetScore = race.difficulty + 8;
     const swimTime = calculateLegTime(format.base.swim, swimPower, targetScore);
     const bikeTime = calculateLegTime(format.base.bike, bikePower, targetScore);
     const runTime = calculateLegTime(format.base.run, runPower, targetScore);
-    const totalTime = swimTime + bikeTime + runTime + format.base.transition;
+    const transitionTime = format.base.transition;
+    const totalTime = swimTime + bikeTime + runTime + transitionTime;
 
     const fieldSize = race.fieldSize;
     const opponents = [];
@@ -1597,6 +1736,10 @@
     return {
       placement,
       totalTime,
+      swimTime,
+      bikeTime,
+      runTime,
+      transitionTime,
       starsReward,
       pointsReward,
       energyCost,
@@ -1647,10 +1790,85 @@
       usedIds.add(filler.id);
     }
 
+    if (
+      isSeasonChampionshipEligible(targetState) &&
+      targetState.championshipEnteredSeason !== targetState.season
+    ) {
+      chosen.length = Math.min(chosen.length, 4);
+      chosen.push(createSeasonChampionship(targetState));
+      targetState.championshipEnteredSeason = targetState.season;
+    }
+
     return chosen.slice(0, 5).map((race, index) => ({
       ...race,
       instanceId: `w${targetState.week}-${index}-${race.id}`,
     }));
+  }
+
+  function createSeasonChampionship(targetState) {
+    return {
+      id: `season-${targetState.season}-championship`,
+      name: `Season ${targetState.season} Championship`,
+      location: targetState.location,
+      format: "olympic",
+      tier: "Championship",
+      minPoints: 0,
+      difficulty: 78,
+      entry: 0,
+      prize: 300,
+      points: 250,
+      fieldSize: 48,
+      isChampionship: true,
+      instanceId: `w${targetState.week}-championship`,
+    };
+  }
+
+  function addSeasonChampionshipToCalendar(targetState) {
+    if (
+      !isSeasonChampionshipEligible(targetState) ||
+      targetState.championshipEnteredSeason === targetState.season
+    ) {
+      return;
+    }
+    if (targetState.upcomingRaces.length >= 5) {
+      targetState.upcomingRaces.pop();
+    }
+    targetState.upcomingRaces.push(createSeasonChampionship(targetState));
+    targetState.championshipEnteredSeason = targetState.season;
+  }
+
+  function isSeasonChampionshipEligible(targetState) {
+    return (
+      targetState.week % 12 === 0 &&
+      targetState.seasonRankingPoints >= 250 &&
+      targetState.seasonRacesEntered >= 2
+    );
+  }
+
+  function changeStars(amount, source, targetState = state) {
+    if (!targetState || !Number.isFinite(amount) || amount === 0) {
+      return;
+    }
+    const previousBalance = targetState.stars;
+    targetState.stars = Math.max(0, Math.round(previousBalance + amount));
+    const actualAmount = targetState.stars - previousBalance;
+    if (actualAmount === 0) {
+      return;
+    }
+    targetState.starTransactions.unshift({
+      week: targetState.week,
+      source,
+      amount: actualAmount,
+      balance: targetState.stars,
+    });
+    targetState.starTransactions.length = Math.min(
+      targetState.starTransactions.length,
+      MAX_STAR_TRANSACTIONS
+    );
+  }
+
+  function raceMoraleBonus(gameState) {
+    return clamp((gameState.morale - 50) * 0.06, -3, 3);
   }
 
   function spendActionIfAvailable() {

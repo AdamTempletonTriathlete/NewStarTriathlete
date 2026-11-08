@@ -28,6 +28,7 @@ This file describes the current screens, navigation and visible controls, and th
 ## Training
 
 - The Training panel lists the six sessions as buttons with short summaries of their mini-games and intended benefits. ✅
+- After each workout, the result and that session's personal-best mini-game score are shown; the Career summary lists all session bests. ✅
 - Choosing a session opens a modal showing its title, mini-game type, instructions, game area, start button and cancel button. ✅
 - The modal presents the interactive Rhythm Gauge, Pattern Recall or Sprint Tap game and can also be dismissed with Escape. ✅
 - The Gear Upgrades card shows swim gear, bike setup and run kit, their levels, a displayed pace value and upgrade buttons with prices. ✅
@@ -38,6 +39,7 @@ This file describes the current screens, navigation and visible controls, and th
 
 - The Travel panel has a destination selector, Travel button and stylized world map for choosing and previewing journeys. ✅
 - The Upcoming Races card lists the current calendar and explains why an event cannot currently be entered on its disabled button. ✅
+- Race cards preview the venue's course profile and conditions, identify the event tier, and show morale's current bounded power modifier per race leg. ✅
 - An eligible event offers Race Now, which immediately runs the simulation rather than opening a separate race screen. ✅
 - If the race calendar is empty, the panel displays a message suggesting ending the week to refresh it. ✅
 
@@ -45,5 +47,6 @@ This file describes the current screens, navigation and visible controls, and th
 
 - The Career card displays races entered, wins, podiums, calculated win rate, best world rank, best finish and the next milestone. ✅
 - The Journey Log displays recent week-numbered events in a scrollable list, newest first. ✅
+- The Journey Log includes each race's swim, bike, run and transition splits. ✅
+- Star Transactions lists each currency earning and expense with its source and resulting balance, newest first. ✅
 - Start New Athlete asks for confirmation, clears the local save and returns to the start screen. ✅
-- Proposed feature: Preview each upcoming race's course profile, race conditions and event tier on its card so athletes can compare events before selecting Race Now.
