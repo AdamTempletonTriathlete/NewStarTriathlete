@@ -462,6 +462,7 @@
     elements.rankingPointsValue = document.getElementById("ranking-points-value");
 
     elements.conditionBars = document.getElementById("condition-bars");
+    elements.nextRacePreview = document.getElementById("next-race-preview");
     elements.trainingActions = document.getElementById("training-actions");
     elements.travelSelect = document.getElementById("travel-select");
     elements.travelBtn = document.getElementById("travel-btn");
@@ -616,6 +617,9 @@
         podiums: 0,
         bestRank: 7000,
         bestFinish: null,
+        winStreak: 0,
+        podiumStreak: 0,
+        longestPodiumStreak: 0,
       },
       milestonesClaimed: [],
       unlockedCities: ["london", "barcelona"],
@@ -702,6 +706,13 @@
     for (const [trainingId, score] of Object.entries(targetState.trainingBests)) {
       targetState.trainingBests[trainingId] = clamp(Math.round(numberOr(score, 0)), 0, 100);
     }
+    for (const key of ["winStreak", "podiumStreak", "longestPodiumStreak"]) {
+      targetState.career[key] = Math.max(0, Math.round(numberOr(targetState.career[key], 0)));
+    }
+    targetState.career.longestPodiumStreak = Math.max(
+      targetState.career.longestPodiumStreak,
+      targetState.career.podiumStreak
+    );
     targetState.energy = clamp(numberOr(targetState.energy, 70), 0, 100);
     targetState.fatigue = clamp(numberOr(targetState.fatigue, 10), 0, 100);
     targetState.morale = clamp(numberOr(targetState.morale, 70), 0, 100);
@@ -738,6 +749,7 @@
     elements.rankingPointsValue.textContent = `${state.rankingPoints}`;
 
     renderConditionBars();
+    renderNextRacePreview();
     renderTrainingActions();
     renderTravelOptions();
     renderTravelMap();
@@ -791,6 +803,45 @@
     elements.conditionBars.appendChild(fragment);
   }
 
+  function renderNextRacePreview() {
+    const race =
+      state.upcomingRaces.find(
+        (event) => state.rankingPoints >= event.minPoints && state.location === event.location
+      ) ||
+      state.upcomingRaces.find((event) => state.rankingPoints >= event.minPoints) ||
+      state.upcomingRaces[0];
+
+    if (!race) {
+      elements.nextRacePreview.textContent = "No races scheduled. End the week to refresh the calendar.";
+      return;
+    }
+
+    let hint = "Ready to race.";
+    if (state.fatigue >= 60) {
+      hint = "Fatigue high - consider resting.";
+    } else if (state.energy < 40) {
+      hint = "Energy low - consider recovering.";
+    } else if (state.rankingPoints < race.minPoints) {
+      hint = `Need ${race.minPoints - state.rankingPoints} more RP to enter.`;
+    } else if (state.location !== race.location) {
+      hint = `Travel to ${getCityName(race.location)} first.`;
+    } else if (state.stars < race.entry) {
+      hint = `Need ${race.entry - state.stars} more stars for entry.`;
+    }
+
+    elements.nextRacePreview.innerHTML = "";
+    const lines = [
+      `<strong>${race.name}</strong> (${getCityName(race.location)})`,
+      `Requires ${race.minPoints} RP | Entry ${race.entry} stars`,
+      hint,
+    ];
+    for (const line of lines) {
+      const row = document.createElement("div");
+      row.innerHTML = line;
+      elements.nextRacePreview.appendChild(row);
+    }
+  }
+
   function renderTrainingActions() {
     elements.trainingActions.innerHTML = "";
     const fragment = document.createDocumentFragment();
@@ -805,7 +856,11 @@
       title.textContent = training.label;
       const summary = document.createElement("span");
       summary.textContent = training.summary;
-      button.append(title, summary);
+      const best = state.trainingBests[training.id];
+      const badge = document.createElement("span");
+      badge.className = "training-badge";
+      badge.textContent = `${best === undefined ? "New!" : `Personal best ${best}%`} | Energy ${training.energy}`;
+      button.append(title, summary, badge);
       fragment.appendChild(button);
     }
     elements.trainingActions.appendChild(fragment);
@@ -824,7 +879,8 @@
         option.textContent = `${city.name} (current city)`;
       } else {
         const cost = calculateTravelCost(state.location, city.id);
-        option.textContent = `${city.name} (${cost} stars)`;
+        const tag = state.unlockedCities.includes(city.id) ? "Visited" : "New!";
+        option.textContent = `${city.name} (${cost} stars, ${tag})`;
       }
       fragment.appendChild(option);
     }
@@ -1038,6 +1094,7 @@
     elements.careerSummary.innerHTML = "";
 
     const items = [
+      `Career Highlights: <strong>${state.career.winStreak} win streak | ${state.career.longestPodiumStreak} longest podium streak</strong>`,
       `Races Entered: <strong>${entered}</strong>`,
       `Wins: <strong>${wins}</strong>`,
       `Podiums: <strong>${podiums}</strong>`,
@@ -1491,9 +1548,19 @@
     state.career.racesEntered += 1;
     if (result.placement === 1) {
       state.career.racesWon += 1;
+      state.career.winStreak += 1;
+    } else {
+      state.career.winStreak = 0;
     }
     if (result.placement <= 3) {
       state.career.podiums += 1;
+      state.career.podiumStreak += 1;
+      state.career.longestPodiumStreak = Math.max(
+        state.career.longestPodiumStreak,
+        state.career.podiumStreak
+      );
+    } else {
+      state.career.podiumStreak = 0;
     }
     if (race.isChampionship && result.placement === 1) {
       state.championshipsWon += 1;

@@ -24,6 +24,7 @@ This file describes the current screens, navigation and visible controls, and th
 - Bar colors indicate good, warning or poor values; fatigue is inverted because less fatigue is better. ✅
 - End Week advances the calendar, restores actions and applies weekly recovery, sponsorship and possible events. ✅
 - Ending a week with unused actions first asks for confirmation. ✅
+- A "Next Week Preview" card on the Status panel would show the next relevant race, its entry requirements, and a one-line readiness hint (e.g. "Fatigue high - consider resting") so players can plan their remaining actions. ✅
 
 ## Training
 
@@ -34,6 +35,7 @@ This file describes the current screens, navigation and visible controls, and th
 - The Gear Upgrades card shows swim gear, bike setup and run kit, their levels, a displayed pace value and upgrade buttons with prices. ✅
 - Gear upgrade buttons are disabled when unaffordable or when the category has reached its maximum level. ✅
 - The displayed pace value is seven times the gear level; race simulation instead adds three power per gear level to the corresponding leg. ✅
+- Each session button on the Training panel would show a small "Personal best" badge with the player's best score (or "New!" if never played) and the energy change, so players can choose a workout without opening the modal. ✅
 
 ## Travel
 
@@ -42,6 +44,7 @@ This file describes the current screens, navigation and visible controls, and th
 - Race cards preview the venue's course profile and conditions, identify the event tier, and show morale's current bounded power modifier per race leg. ✅
 - An eligible event offers Race Now, which immediately runs the simulation rather than opening a separate race screen. ✅
 - If the race calendar is empty, the panel displays a message suggesting ending the week to refresh it. ✅
+- Each destination in the Travel selector would show its travel cost and a "Visited" tick or "New!" tag, so players can compare journeys without selecting each one. ✅
 
 ## Career
 
@@ -50,3 +53,4 @@ This file describes the current screens, navigation and visible controls, and th
 - The Journey Log includes each race's swim, bike, run and transition splits. ✅
 - Star Transactions lists each currency earning and expense with its source and resulting balance, newest first. ✅
 - Start New Athlete asks for confirmation, clears the local save and returns to the start screen. ✅
+- The Career card would show a "Career Highlights" row with the player's current win streak and longest podium streak, so recent form is visible at a glance. ✅
