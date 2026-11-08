@@ -67,3 +67,4 @@ This file describes race travel, the map, the race calendar, simulation and rank
 - Race qualification uses ranking points rather than world rank or the displayed rank tier. ✅
 - Ranking points earned from races and training unlock higher-requirement races and automatically trigger one-time milestone rewards. ✅
 - Training and attribute improvements can also improve world rank without racing; race wins and podiums add further ranking bonuses. ✅
+- Proposed feature: Record swim, bike, run and transition split times for each race in the journey log so athletes can track discipline-specific performance trends.

@@ -26,3 +26,4 @@ This file describes the current stars currency, how it is earned and what it pay
 - Upgrading from level 1 through level 6 costs 100, 155, 210, 265 and 320 stars respectively for each gear category. ✅
 - Gear upgrades are permanent, increase morale by 1, do not consume an action and stop at level 6. ✅
 - If a travel or race attempt fails its affordability check, no stars are spent and the attempted action is returned. ✅
+- Proposed feature: Add a star transaction history showing each earning or expense, its source and the resulting balance.

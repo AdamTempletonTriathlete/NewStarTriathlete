@@ -46,3 +46,4 @@ This file describes the current screens, navigation and visible controls, and th
 - The Career card displays races entered, wins, podiums, calculated win rate, best world rank, best finish and the next milestone. ✅
 - The Journey Log displays recent week-numbered events in a scrollable list, newest first. ✅
 - Start New Athlete asks for confirmation, clears the local save and returns to the start screen. ✅
+- Proposed feature: Preview each upcoming race's course profile, race conditions and event tier on its card so athletes can compare events before selecting Race Now.

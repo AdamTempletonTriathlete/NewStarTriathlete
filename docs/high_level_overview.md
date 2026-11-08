@@ -16,3 +16,4 @@ This file describes the current game concept and the main systems that make up a
 - Progress is stored in this browser's local storage and can be continued on the same browser and device. ✅
 - The game has no implemented multiplayer, live opponent interaction or playable race controls; races are simulations. ✅
 - The other files in this folder describe the athlete, money, racing, training and interface in more detail. ✅
+- Proposed feature: Add a championship race at the end of each 12-week season, qualifying athletes by season results and awarding a unique reward that carries into the next season.

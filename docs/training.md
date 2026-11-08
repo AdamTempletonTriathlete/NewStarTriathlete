@@ -47,3 +47,4 @@ This file describes the current training sessions, their mini-games and how resu
 - Each completed session awards ranking points equal to 2 plus the score divided by 11, rounded, giving 2–11 points. ✅
 - Each completed session awards the score divided by 22 in stars, rounded, giving 0–5 stars. ✅
 - The journey log records the session, score, mini-game result and rewards; the final toast shows the session and score. ✅
+- Proposed feature: Track each session's personal-best mini-game score and display it alongside the current score after each workout.
