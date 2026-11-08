@@ -45,3 +45,4 @@ This file describes the saved athlete, condition, progression and career records
 - Progress is saved when the game renders after changes; continuing restores the saved athlete and regenerates the calendar if it is empty. ✅
 - Starting a new athlete replaces the existing single save; the Career page also provides a confirmed option to clear it. ✅
 - Saves are local to the browser's storage, not synchronized between devices; a save failure is reported in a toast. ✅
+- Proposed feature: Make morale a small, bounded modifier to race performance and show its effect in the pre-race summary.
