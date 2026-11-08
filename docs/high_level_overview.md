@@ -11,9 +11,8 @@ This file describes the current game concept and the main systems that make up a
 - Races are automatically simulated against a field of opponents and award ranking points and stars based on the finish. ✅
 - Stars also buy permanent swim, bike and run gear upgrades. ✅
 - Ending a week restores actions and condition, pays a sponsor, may trigger a random event and replaces the race calendar. ✅
-- Every 12 weeks begins a new season; seasons currently have no separate championship or reset. ✅
+- Every 12 weeks begins a new season; athletes who reach 250 race ranking points and enter at least two races qualify for a week-12 championship. A win grants stars and a persistent race-power legacy bonus. ✅
 - Career progression comes from improved attributes, gear, ranking points, race results and milestone rewards; there is no separate athlete experience level. ✅
 - Progress is stored in this browser's local storage and can be continued on the same browser and device. ✅
 - The game has no implemented multiplayer, live opponent interaction or playable race controls; races are simulations. ✅
 - The other files in this folder describe the athlete, money, racing, training and interface in more detail. ✅
-- Proposed feature: Add a championship race at the end of each 12-week season, qualifying athletes by season results and awarding a unique reward that carries into the next season.
