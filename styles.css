@@ -633,3 +633,9 @@ label {
 .tab-icon {
   font-size: 1.2rem;
 }
+
+.action-btn .training-badge {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--primary);
+}
